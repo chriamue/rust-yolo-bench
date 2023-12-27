@@ -1,0 +1,11 @@
+[package]
+name = "rust-yolo-bench"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "bin"
+path = "src/main.rs"
+
+[dependencies]
+yew = { version = "0.21.0", features = ["csr"] }
