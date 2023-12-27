@@ -33,6 +33,12 @@ To get started with `RustYoloBench`, you need to have Rust and the necessary dep
 ```
     This will start the application on `localhost:8080`.
 
+## Run tests
+
+```bash
+wasm-pack test --firefox --headless
+```
+
 ## Contributing
 We welcome contributions to `RustYoloBench`! If you have suggestions or improvements, feel free to fork this repository and submit a pull request.
 
