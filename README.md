@@ -14,19 +14,23 @@
 To get started with `RustYoloBench`, you need to have Rust and the necessary dependencies installed on your system. Follow these steps:
 
 1. **Clone the Repository**:
-   ```
+
+```
    git clone https://github.com/chriamue/rust-yolo-bench.git
-   ```
+```
+
 2. **Install Dependencies**:
-3. ```bash
+
+```bash
    cd rust-yolo-bench
    cargo install wasm-pack
    cargo install trunk
-   ```
-4. **Running the Application**:
-    ```bash
+```
+3. **Running the Application**:
+
+```bash
     trunk serve
-    ```
+```
     This will start the application on `localhost:8080`.
 
 ## Contributing
