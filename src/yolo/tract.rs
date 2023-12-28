@@ -10,6 +10,8 @@ use crate::bbox::BBox;
 use crate::detection::{nms_sort, Detection};
 use crate::Config;
 
+use super::Processor;
+
 fn sigmoid(a: &f32) -> f32 {
     1.0 / (1.0 + (-a).exp())
 }
@@ -142,6 +144,12 @@ impl Default for Yolo {
             model: Self::model(),
             detections: Vec::new(),
         }
+    }
+}
+
+impl Processor for Yolo {
+    fn process(&self, image: &mut Box<DynamicImage>) -> Result<(), Box<dyn std::error::Error>> {
+        self.process_image(image)
     }
 }
 

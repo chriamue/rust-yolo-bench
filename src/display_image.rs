@@ -40,30 +40,6 @@ fn draw_image_on_canvas(image_data: ImageData, last_update: f64) -> (String, f64
     (canvas.to_data_url().unwrap_throw(), new_last_update)
 }
 
-fn run_yolo(image_data: ImageData) -> ImageData {
-
-    let yolo = crate::yolo::tract::Yolo::default();
-    let img = image::ImageBuffer::from_raw(
-        image_data.width(),
-        image_data.height(),
-        image_data.data().to_vec(),
-    )
-    .unwrap_throw();
-
-    let mut img = Box::new(image::DynamicImage::ImageRgba8(img));
-    yolo.process_image(&mut img).unwrap_throw();
-
-    let img = img.to_rgba8();
-    let image_data = ImageData::new_with_u8_clamped_array_and_sh(
-        wasm_bindgen::Clamped(&mut img.into_raw()),
-        image_data.width(),
-        image_data.height(),
-    )
-    .unwrap_throw();
-
-    image_data
-}
-
 fn create_interval_callback(
     image_queue: Arc<ImageQueue>,
     data_url: UseStateHandle<String>,
@@ -71,7 +47,7 @@ fn create_interval_callback(
 ) -> Closure<dyn FnMut()> {
     Closure::wrap(Box::new(move || {
         if let Some(image_data) = image_queue.pop() {
-            let (url, new_last_update) = draw_image_on_canvas(run_yolo(image_data), *set_last_update);
+            let (url, new_last_update) = draw_image_on_canvas(image_data, *set_last_update);
             data_url.set(url);
             set_last_update.set(new_last_update);
         }

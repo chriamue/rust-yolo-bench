@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::sync::Arc;
 use wasm_bindgen::closure::Closure;
 use wasm_bindgen::{JsCast, JsValue, UnwrapThrowExt};
@@ -47,16 +48,25 @@ fn draw_video_on_canvas(video: &HtmlVideoElement, canvas: &HtmlCanvasElement) {
         .unwrap_throw();
 }
 
-fn capture_frame_as_image(video: &HtmlVideoElement, canvas: &HtmlCanvasElement) -> ImageData {
+fn capture_frame_as_image(
+    video: &HtmlVideoElement,
+    canvas: &HtmlCanvasElement,
+) -> Result<ImageData, Box<dyn Error>> {
     draw_video_on_canvas(video, canvas);
-    canvas
+    let context = canvas
         .get_context("2d")
-        .unwrap_throw()
-        .unwrap_throw()
+        .map_err(|e| e.as_string().unwrap_or("Unknown error".to_string()))?
+        .ok_or("Failed to get 2D context")?
         .dyn_into::<CanvasRenderingContext2d>()
-        .unwrap_throw()
+        .map_err(|_| "Failed to cast to CanvasRenderingContext2d")?;
+
+    context
         .get_image_data(0.0, 0.0, canvas.width() as f64, canvas.height() as f64)
-        .unwrap_throw()
+        .map_err(|e| {
+            e.as_string()
+                .unwrap_or("Failed to get image data".to_string())
+                .into()
+        })
 }
 
 fn producer_task(
@@ -64,11 +74,11 @@ fn producer_task(
     canvas: &HtmlCanvasElement,
     image_queue: Arc<ImageQueue>,
 ) {
-    let frame = capture_frame_as_image(&video, &canvas);
-
-    match image_queue.push(frame) {
-        Ok(_) => (),
-        Err(e) => log::warn!("Producer: Failed to add frame - {}", e),
+    if let Ok(frame) = capture_frame_as_image(&video, &canvas) {
+        match image_queue.push(frame) {
+            Ok(_) => (),
+            Err(e) => log::warn!("Producer: Failed to add frame - {}", e),
+        }
     }
 }
 

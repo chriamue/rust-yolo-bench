@@ -23,6 +23,14 @@ impl ImageQueue {
         }
     }
 
+    pub fn new_with_id(id: usize, max_size: usize) -> Self {
+        Self {
+            id,
+            queue: Mutex::new(VecDeque::new()),
+            max_size,
+        }
+    }
+
     pub fn push(&self, image_data: ImageData) -> Result<(), String> {
         if let Ok(mut queue) = self.queue.try_lock() {
             if queue.len() >= self.max_size {
@@ -41,6 +49,10 @@ impl ImageQueue {
         } else {
             None
         }
+    }
+
+    pub fn id(&self) -> usize {
+        self.id
     }
 }
 
