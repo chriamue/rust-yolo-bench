@@ -205,7 +205,6 @@ impl Processor for Yolo {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -1,8 +1,6 @@
-use std::sync::{Arc, Mutex, TryLockError};
-
-use web_sys::ImageData;
-
 use crate::{image_queue::ImageQueue, Model};
+use std::sync::{Arc, Mutex, TryLockError};
+use web_sys::ImageData;
 
 pub struct Pipeline {
     model: Mutex<Model>,
@@ -46,44 +44,19 @@ impl Pipeline {
     }
 
     pub fn process(&self) -> Result<(), Box<dyn std::error::Error + '_>> {
-        match (self.model.try_lock(), self.processor.try_lock()) {
-            (Ok(model_guard), Ok(mut processor_guard)) => match *model_guard {
-                #[cfg(feature = "candle")]
-                Model::Candle => {
-                    if processor_guard.is_none() {
-                        *processor_guard = Some(Arc::new(crate::yolo::candle::Yolo::default()));
+        match self.processor.try_lock() {
+            Ok(mut processor_guard) => {
+                if let Some(mut image_data) = self.video_queue.pop() {
+                    if let Some(processor) = processor_guard.as_mut() {
+                        let mut image = Box::new(Pipeline::to_dynamic_image(image_data));
+                        processor.process(&mut image)?;
+                        image_data = Pipeline::from_dynamic_image(*image);
                     }
-
-                    if let Some(image_data) = self.video_queue.pop() {
-                        let processor = processor_guard.as_ref().unwrap();
-                        let mut img = Box::new(Pipeline::to_dynamic_image(image_data));
-                        processor.process(&mut img)?;
-                        let image_data = Pipeline::from_dynamic_image(*img);
-                        self.processed_queue.push(image_data)?;
-                    }
+                    self.processed_queue.push(image_data)?;
                 }
-                #[cfg(feature = "tract")]
-                Model::Tract => {
-                    if processor_guard.is_none() {
-                        *processor_guard = Some(Arc::new(crate::yolo::tract::Yolo::default()));
-                    }
-
-                    if let Some(image_data) = self.video_queue.pop() {
-                        let processor = processor_guard.as_ref().unwrap();
-                        let mut img = Box::new(Pipeline::to_dynamic_image(image_data));
-                        processor.process(&mut img)?;
-                        let image_data = Pipeline::from_dynamic_image(*img);
-                        self.processed_queue.push(image_data)?;
-                    }
-                }
-                Model::None => {
-                    if let Some(image_data) = self.video_queue.pop() {
-                        self.processed_queue.push(image_data)?;
-                    }
-                }
-            },
-            (Err(TryLockError::WouldBlock), _) | (_, Err(TryLockError::WouldBlock)) => {
-                log::warn!("Unable to acquire locks for model or processor.");
+            }
+            Err(TryLockError::WouldBlock) => {
+                log::warn!("Unable to acquire locks for processor.");
                 return Ok(());
             }
             _ => {
