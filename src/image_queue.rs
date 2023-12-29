@@ -1,6 +1,7 @@
 use std::{collections::VecDeque, sync::Mutex};
 
-use web_sys::{js_sys::Math::random, ImageData};
+use wasm_bindgen_futures::js_sys::Math::random;
+use web_sys::ImageData;
 
 pub struct ImageQueue {
     id: usize,

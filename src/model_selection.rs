@@ -16,6 +16,9 @@ pub fn model_selection(props: &ModelSelectionProps) -> Html {
             let target: HtmlSelectElement = event.target_unchecked_into();
             let value = target.value();
             let model = match value.as_str() {
+                #[cfg(feature = "candle")]
+                "Candle" => Model::Candle,
+                #[cfg(feature = "tract")]
                 "Tract" => Model::Tract,
                 _ => Model::None,
             };
@@ -26,6 +29,7 @@ pub fn model_selection(props: &ModelSelectionProps) -> Html {
     html! {
         <select onchange={on_change}>
             <option value="None" selected=true>{"None"}</option>
+            <option value="Candle">{"Candle"}</option>
             <option value="Tract">{"Tract"}</option>
         </select>
     }

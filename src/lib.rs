@@ -74,6 +74,9 @@ pub enum Model {
     None,
     #[cfg(feature = "tract")]
     Tract,
+
+    #[cfg(feature = "candle")]
+    Candle,
 }
 
 #[derive(Clone, serde::Serialize, serde::Deserialize)]

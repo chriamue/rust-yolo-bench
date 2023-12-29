@@ -48,6 +48,21 @@ impl Pipeline {
     pub fn process(&self) -> Result<(), Box<dyn std::error::Error + '_>> {
         match (self.model.try_lock(), self.processor.try_lock()) {
             (Ok(model_guard), Ok(mut processor_guard)) => match *model_guard {
+                #[cfg(feature = "candle")]
+                Model::Candle => {
+                    if processor_guard.is_none() {
+                        *processor_guard = Some(Arc::new(crate::yolo::candle::Yolo::default()));
+                    }
+
+                    if let Some(image_data) = self.video_queue.pop() {
+                        let processor = processor_guard.as_ref().unwrap();
+                        let mut img = Box::new(Pipeline::to_dynamic_image(image_data));
+                        processor.process(&mut img)?;
+                        let image_data = Pipeline::from_dynamic_image(*img);
+                        self.processed_queue.push(image_data)?;
+                    }
+                }
+                #[cfg(feature = "tract")]
                 Model::Tract => {
                     if processor_guard.is_none() {
                         *processor_guard = Some(Arc::new(crate::yolo::tract::Yolo::default()));
@@ -82,5 +97,21 @@ impl Pipeline {
     pub fn set_model(&self, model: Model) {
         let mut model_guard = self.model.lock().unwrap();
         *model_guard = model;
+        match *model_guard {
+            #[cfg(feature = "candle")]
+            Model::Candle => {
+                let mut processor_guard = self.processor.lock().unwrap();
+                *processor_guard = Some(Arc::new(crate::yolo::candle::Yolo::default()));
+            }
+            #[cfg(feature = "tract")]
+            Model::Tract => {
+                let mut processor_guard = self.processor.lock().unwrap();
+                *processor_guard = Some(Arc::new(crate::yolo::tract::Yolo::default()));
+            }
+            Model::None => {
+                let mut processor_guard = self.processor.lock().unwrap();
+                *processor_guard = None;
+            }
+        }
     }
 }

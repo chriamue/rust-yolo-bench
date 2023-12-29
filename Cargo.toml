@@ -8,10 +8,13 @@ name = "bin"
 path = "src/main.rs"
 
 [features]
-default = ["tract"]
+default = ["candle", "tract"]
 tract = ["ndarray", "tract-onnx"]
+candle = ["candle-core", "candle-nn"]
 
 [dependencies]
+candle-core = { version = "0.3.2", optional = true }
+candle-nn = { version = "0.3.2", optional = true }
 console_log = "1.0.0"
 float-ord = "0.3.2"
 image = { version = "0.24.7", default-features = false, features = [
