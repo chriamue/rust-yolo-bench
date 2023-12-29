@@ -35,10 +35,12 @@ impl Pipeline {
 
     fn from_dynamic_image(image: image::DynamicImage) -> ImageData {
         let img = image.to_rgba8();
+        let width = img.width();
+        let height = img.height();
         ImageData::new_with_u8_clamped_array_and_sh(
-            wasm_bindgen::Clamped(&mut img.into_raw()),
-            image.width(),
-            image.height(),
+            wasm_bindgen::Clamped(&img.into_raw().to_vec()),
+            width,
+            height,
         )
         .unwrap()
     }
