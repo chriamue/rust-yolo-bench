@@ -3,5 +3,5 @@
 
 /Cargo.lock
 
-dog_out.jpg
-person_out.jpg
+dog_*.jpg
+person_*.jpg

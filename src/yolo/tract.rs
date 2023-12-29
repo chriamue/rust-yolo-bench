@@ -231,13 +231,13 @@ mod tests {
 
         yolo.process_image(&mut img).unwrap();
 
-        img.save_with_format("dog_out.jpg", image::ImageFormat::Jpeg)?;
+        img.save_with_format("dog_tract.jpg", image::ImageFormat::Jpeg)?;
 
         let mut img = Box::new(ImageReader::open("assets/person.jpg")?.decode()?);
 
         yolo.process_image(&mut img).unwrap();
 
-        img.save_with_format("person_out.jpg", image::ImageFormat::Jpeg)?;
+        img.save_with_format("person_tract.jpg", image::ImageFormat::Jpeg)?;
 
         Ok(())
     }

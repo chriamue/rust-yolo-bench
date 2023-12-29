@@ -204,3 +204,30 @@ impl Processor for Yolo {
         self.process_image(image)
     }
 }
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use image::io::Reader as ImageReader;
+
+    #[cfg(not(target_arch = "wasm32"))]
+    #[test]
+    fn default() -> Result<(), Box<dyn std::error::Error>> {
+        let yolo = Yolo::default();
+
+        let mut img = Box::new(ImageReader::open("assets/dog.jpg")?.decode()?);
+
+        yolo.process_image(&mut img).unwrap();
+
+        img.save_with_format("dog_candle.jpg", image::ImageFormat::Jpeg)?;
+
+        let mut img = Box::new(ImageReader::open("assets/person.jpg")?.decode()?);
+
+        yolo.process_image(&mut img).unwrap();
+
+        img.save_with_format("person_candle.jpg", image::ImageFormat::Jpeg)?;
+
+        Ok(())
+    }
+}
