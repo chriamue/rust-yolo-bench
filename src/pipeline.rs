@@ -38,7 +38,7 @@ impl Pipeline {
         let width = img.width();
         let height = img.height();
         ImageData::new_with_u8_clamped_array_and_sh(
-            wasm_bindgen::Clamped(&img.into_raw().to_vec()),
+            wasm_bindgen::Clamped(&img.into_raw()),
             width,
             height,
         )

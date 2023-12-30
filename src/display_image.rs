@@ -1,5 +1,6 @@
+use std::{cell::RefCell, sync::Arc};
+
 use super::image_queue::ImageQueue;
-use std::sync::Arc;
 use wasm_bindgen::{closure::Closure, JsCast, JsValue, UnwrapThrowExt};
 use web_sys::{HtmlCanvasElement, ImageData, Window};
 use yew::prelude::*;
@@ -37,13 +38,14 @@ fn draw_image_on_canvas(
 fn create_interval_callback(
     image_queue: Arc<ImageQueue>,
     canvas_ref: NodeRef,
-    set_last_update: UseStateHandle<f64>,
+    last_update: Arc<RefCell<f64>>,
 ) -> Closure<dyn FnMut()> {
     Closure::wrap(Box::new(move || {
         if let Some(image_data) = image_queue.pop() {
             if let Some(canvas) = canvas_ref.cast::<HtmlCanvasElement>() {
-                let new_last_update = draw_image_on_canvas(&canvas, image_data, *set_last_update);
-                set_last_update.set(new_last_update);
+                let last_update_value = *last_update.borrow();
+                let new_last_update = draw_image_on_canvas(&canvas, image_data, last_update_value);
+                *last_update.borrow_mut() = new_last_update;
             }
         }
     }) as Box<dyn FnMut()>)
@@ -57,15 +59,20 @@ pub struct DisplayImageProps {
 #[function_component(DisplayImage)]
 pub fn display_image(props: &DisplayImageProps) -> Html {
     let canvas_ref = use_node_ref();
-    let last_update = use_state(|| 0.0);
+    let last_update = Arc::new(RefCell::new(0.0));
     let image_queue = props.image_queue.clone();
     let canvas_ref_cloned = canvas_ref.clone();
-    let last_update_cloned = last_update.clone();
 
-    use_effect(move || {
+    use_effect_with(image_queue.clone(), move |image_queue| {
+        log::debug!("Initializing display image");
         let window: Window = web_sys::window().unwrap_throw();
-        let callback =
-            create_interval_callback(image_queue.clone(), canvas_ref_cloned, last_update_cloned);
+        let last_update_cloned = last_update.clone();
+
+        let callback = create_interval_callback(
+            image_queue.clone(),
+            canvas_ref_cloned,
+            last_update_cloned.clone(),
+        );
 
         let handle = window
             .set_interval_with_callback_and_timeout_and_arguments_0(

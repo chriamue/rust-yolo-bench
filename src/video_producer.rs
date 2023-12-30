@@ -96,6 +96,7 @@ pub fn video_producer(props: &VideoProducerProps) -> Html {
     let frame_queue_producer = props.image_queue.clone();
 
     use_effect_with(frame_queue_producer.clone(), move |_| {
+        log::debug!("Initializing video producer");
         let video = video_ref_clone.cast::<HtmlVideoElement>().unwrap_throw();
         let canvas = canvas_ref_clone.cast::<HtmlCanvasElement>().unwrap_throw();
 
@@ -131,7 +132,7 @@ pub fn video_producer(props: &VideoProducerProps) -> Html {
     html! {
         <div>
             <video ref={video_ref} autoplay=true />
-            <canvas ref={canvas_ref} style="display: none;" />
+            <canvas id="video-producer-canvas" ref={canvas_ref} style="display: none;" />
         </div>
     }
 }
