@@ -1,7 +1,7 @@
+use crate::Model;
+use std::str::FromStr;
 use web_sys::HtmlSelectElement;
 use yew::prelude::*;
-
-use crate::Model;
 
 #[derive(Properties, PartialEq, Clone)]
 pub struct ModelSelectionProps {
@@ -15,14 +15,10 @@ pub fn model_selection(props: &ModelSelectionProps) -> Html {
         Callback::from(move |event: Event| {
             let target: HtmlSelectElement = event.target_unchecked_into();
             let value = target.value();
-            let model = match value.as_str() {
-                #[cfg(feature = "candle")]
-                "Candle" => Model::Candle,
-                #[cfg(feature = "tract")]
-                "Tract" => Model::Tract,
-                _ => Model::None,
-            };
-            on_select.emit(model);
+            match Model::from_str(&value) {
+                Ok(model) => on_select.emit(model),
+                Err(err) => log::error!("{}", err),
+            }
         })
     };
 
